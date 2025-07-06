@@ -12,9 +12,10 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(webview)
 
-add_library(lya_core SHARED lya_core.cpp)
-
+add_library(lya_core SHARED main.cpp)
 target_link_libraries(lya_core PRIVATE webview::core)
 
-# macos only for now
-# target_link_libraries(lya_core "-framework Cocoa" "-framework WebKit")
+if (APPLE)
+    target_link_libraries(lya_core PRIVATE "-framework WebKit")
+    target_link_libraries(lya_core PRIVATE dl)
+endif ()
