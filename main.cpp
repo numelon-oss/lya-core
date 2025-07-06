@@ -1,9 +1,7 @@
 #include <mutex>
 #include <queue>
 
-#include "webview/webview.h"
-
-static webview_t w = nullptr;
+#include "webview.h"
 
 enum MsgType {
     EVAL,
@@ -18,6 +16,8 @@ struct LuxMessage {
     MsgType type;
     std::string payload;
 };
+
+static webview_t w = nullptr;
 
 // thread safe msg queue
 static std::queue<LuxMessage> queue;
@@ -36,19 +36,22 @@ extern "C" {
         webview_navigate(w, url);
     }
 
+    void lux_set_title(const char* title) {
+        webview_set_title(w, title);
+    }
+
     // main blocking c loop ran by lux.run()
     void lux_run() {
         webview_run(w);
     }
     // TODO: maybe just call lux_run() immediately after lux.main()?
 
-
-
-
-
+    // -------------------------------------------------- //
+    // -- dispatcher ------------------------------------ //
+    // -------------------------------------------------- //
 
     // we don't actually use dispatch_trampoline from within lua with ffi
-    void dispatch_trampoline(const webview_t w, void* idk) {
+    void dispatch_trampoline(webview_t w, void* idk) {
         std::lock_guard lock(queue_mutex);
 
         while (!queue.empty()) {
@@ -65,7 +68,7 @@ extern "C" {
                     break;
 
                 // default:
-                //     // could do std::cout etc but is there even a point
+                //     // could do std::cout etc. for a warning but is there even a point
                 //     break;
             }
         }
